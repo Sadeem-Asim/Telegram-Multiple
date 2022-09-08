@@ -1,0 +1,36 @@
+#addAccountBtn {
+  position: absolute;
+  top: 2%;
+  right: 2%;
+  color: black;
+  background-color: white;
+}
+.userSection .addAccountBtn:hover,
+.userSection .addAccountBtn:focus,
+.userSection .addAccountBtn:active {
+  color: black;
+  background-color: white;
+}
+.userSection .userSection-container h1 {
+  padding-top: 5rem;
+}
+#modal-modal-title {
+  margin: 1rem 0;
+}
+#modal-close {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+}
+#modal {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50rem;
+  background-color: white;
+  -webkit-transform: translate(-50%, -50%);
+  -moz-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  -o-transform: translate(-50%, -50%);
+}

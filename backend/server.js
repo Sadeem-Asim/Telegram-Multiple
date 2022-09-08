@@ -1,23 +1,31 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const cors = require("cors");
-const passport = require("passport");
-const passportLocal = require("passport-local").Strategy;
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
-const session = require("express-session");
 const bodyParser = require("body-parser");
 const app = express();
-const User = require("./user");
+const session = require("express-session");
+const User = require("./models/user");
+const jwt = require("jsonwebtoken");
+const {
+  protect,
+  logOut,
+  getUsers,
+} = require("./controllers/userControllers.js");
+const accountRouter = require("./routers/accountRouters");
+const userRouter = require("./routers/userRouter");
 //----------------------------------------- END OF IMPORTS---------------------------------------------------
+
 mongoose.connect(
-  "mongodb+srv://{Place Your Username Here!}:{Place Your Password Here!}@cluster0-q9g9s.mongodb.net/test?retryWrites=true&w=majority",
+  "mongodb://localhost:27017/telegram",
   {
     useNewUrlParser: true,
     useUnifiedTopology: true,
+    useCreateIndex: true,
   },
   () => {
-    console.log("Mongoose Is Connected");
+    console.log("Db Connection Successful");
   }
 );
 
@@ -38,26 +46,45 @@ app.use(
   })
 );
 app.use(cookieParser("secretcode"));
-app.use(passport.initialize());
-app.use(passport.session());
-require("./passportConfig")(passport);
 
 //----------------------------------------- END OF MIDDLEWARE---------------------------------------------------
 
 // Routes
-app.post("/login", (req, res, next) => {
-  passport.authenticate("local", (err, user, info) => {
-    if (err) throw err;
-    if (!user) res.send("No User Exists");
-    else {
-      req.logIn(user, (err) => {
-        if (err) throw err;
-        res.send("Successfully Authenticated");
-        console.log(req.user);
-      });
-    }
-  })(req, res, next);
+app.use("/", accountRouter);
+app.use("/", userRouter);
+app.get("/logOut", logOut);
+app.get("/isLoggedIn", protect);
+app.post("/login", async (req, res, next) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username }).select("+password");
+  if (user) {
+    bcrypt.compare(password, user.password, (err, result) => {
+      // if (err) throw err;
+      if (result === true) {
+        console.log(result);
+        user.password = undefined;
+        let { _id } = user;
+        const token = jwt.sign({ _id }, "Sadeem", { expiresIn: "24h" });
+        const cookieOptions = {
+          expires: new Date(Date.now() + 9000000 * 24 * 60 * 60 * 1000),
+          secure: true,
+          httpOnly: true,
+        };
+        res.cookie("jwt", token, cookieOptions);
+        req.user = user;
+        res.status(200).json({
+          message: "success",
+          user,
+        });
+      } else {
+        res
+          .status(200)
+          .send({ status: "failed", message: "Invalid Username Or Password" });
+      }
+    });
+  }
 });
+
 app.post("/register", (req, res) => {
   User.findOne({ username: req.body.username }, async (err, doc) => {
     if (err) throw err;
@@ -74,9 +101,7 @@ app.post("/register", (req, res) => {
     }
   });
 });
-app.get("/user", (req, res) => {
-  res.send(req.user); // The req.user stores the entire user that has been authenticated inside of it.
-});
+app.get("/users", getUsers);
 //----------------------------------------- END OF ROUTES---------------------------------------------------
 //Start Server
 app.listen(4000, () => {
