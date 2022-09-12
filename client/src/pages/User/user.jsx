@@ -2,18 +2,21 @@ import {
   Button,
   Container,
   Grid,
-  Paper,
   Typography,
   Modal,
   Box,
   TextField,
 } from "@mui/material";
-import { styled } from "@mui/material/styles";
 import React, { useState } from "react";
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
 import "./user.css";
 import Axios from "axios";
+import CloseIcon from "@mui/icons-material/Close";
+import Account from "./../../components/account/account";
+// import { ToastContainer, toast } from "react-toastify";
+// import "react-toastify/dist/ReactToastify.css";
+
 // My Account Details
 // const apiId = 17720656;
 // const apiHash = "db2355877197069b70d88dfb586a4fd8";
@@ -36,18 +39,10 @@ const style = {
 
 const User = ({ data }) => {
   const [openModal, setOpenModal] = useState(false);
-  const [apiId, setApiId] = useState(false);
+  let [apiId, setApiId] = useState(false);
   const [apiHash, setApiHash] = useState(false);
   const [phoneNo, setPhoneNo] = useState(false);
   const stringSession = new StringSession("");
-  console.log(data.accounts);
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-    ...theme.typography.body2,
-    padding: theme.spacing(1),
-    textAlign: "center",
-    color: theme.palette.text.secondary,
-  }));
   const handleClose = () => {
     setOpenModal(false);
   };
@@ -57,6 +52,7 @@ const User = ({ data }) => {
   const addAccount = async () => {
     try {
       console.log("Loading interactive example...");
+      apiId = Number(apiId);
       const client = new TelegramClient(stringSession, apiId, apiHash, {
         connectionRetries: 5,
         useWSS: true,
@@ -81,6 +77,7 @@ const User = ({ data }) => {
           },
         });
         console.log(newAccount);
+        window.location.reload();
       }
     } catch (err) {
       alert(err.message);
@@ -92,6 +89,7 @@ const User = ({ data }) => {
       <Button variant="contained" onClick={activeModal} id="addAccountBtn">
         Add Account
       </Button>
+
       <div className="userSection">
         <Modal
           open={openModal}
@@ -100,7 +98,7 @@ const User = ({ data }) => {
         >
           <Box sx={style}>
             <Button id="modal-close" onClick={handleClose}>
-              Close
+              <CloseIcon />
             </Button>
             <Typography id="modal-modal-title" variant="h6" component="h2">
               Enter Your Telegram Account Details
@@ -129,7 +127,6 @@ const User = ({ data }) => {
               focused
               id="modal-text"
             />
-
             <Button variant="contained" onClick={addAccount}>
               Submit
             </Button>
@@ -137,18 +134,17 @@ const User = ({ data }) => {
         </Modal>
 
         <Container maxWidth="lg" className="userSection-container">
-          <h1>Telegram Multiple Accounts</h1>
+          <h1 id="title">Telegram Multiple Accounts</h1>
           <Grid
             container
-            rowSpacing={2}
+            rowSpacing={1}
             columnSpacing={{ xs: 1, sm: 2, md: 3 }}
           >
-            <Grid item xs={6}>
-              <Item>1</Item>
-            </Grid>
-            <Grid item xs={6}>
-              <Item>2</Item>
-            </Grid>
+            {data.accounts.map((el, i) => (
+              <Grid item xs={6} key={i}>
+                <Account account={el} key={i} />
+              </Grid>
+            ))}
           </Grid>
         </Container>
       </div>
@@ -156,11 +152,3 @@ const User = ({ data }) => {
   );
 };
 export default User;
-// const result = await client.invoke(
-//   new Api.messages.GetAllChats({
-//     exceptIds: [7475723],
-//   })
-// );
-// console.log(result, token); // prints the result
-
-// await client.sendMessage(result.chats[0].title, { message: "Hello! Bro" });

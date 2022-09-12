@@ -3,7 +3,7 @@ import "./App.css";
 import Axios from "axios";
 import User from "./pages/User/user";
 
-import { Button, Container, Grid, Typography } from "@mui/material";
+import { Button, Container, Grid, Typography, TextField } from "@mui/material";
 
 function App() {
   const [isAuthenticated, setAuthentication] = useState(false);
@@ -55,16 +55,7 @@ function App() {
       // window.location.reload();
     });
   };
-  const getUser = () => {
-    Axios({
-      method: "GET",
-      withCredentials: true,
-      url: "http://localhost:4000/user",
-    }).then((res) => {
-      setData(res.data);
-      console.log(res.data);
-    });
-  };
+
   const logOut = () => {
     Axios({
       method: "GET",
@@ -89,50 +80,70 @@ function App() {
     return (
       <Container maxWidth="lg">
         <div className="App">
-          <Typography variant="h1" component="h1">
+          <Typography variant="h1" id="title" component="h1">
             Telegram Multiple Accounts
           </Typography>
-          <div>
-            <Typography variant="h2" component="h6">
-              Register
-            </Typography>
-            <input
-              placeholder="username"
-              onChange={(e) => setRegisterUsername(e.target.value)}
-            />
-            <input
-              placeholder="password"
-              onChange={(e) => setRegisterPassword(e.target.value)}
-            />
-            <button onClick={register}>Submit</button>
-          </div>
 
-          <div>
-            <Typography variant="h2" component="h6">
-              Login
-            </Typography>
-            <input
-              placeholder="username"
-              onChange={(e) => setLoginUsername(e.target.value)}
-            />
-            <input
-              placeholder="password"
-              onChange={(e) => setLoginPassword(e.target.value)}
-            />
-            <button onClick={login}>Submit</button>
-          </div>
+          <Grid
+            container
+            rowSpacing={2}
+            columnSpacing={{ xs: 1, sm: 2, md: 3 }}
+          >
+            <Grid item xs={6}>
+              <div className="login-container">
+                <Typography variant="h2" component="h6" id="login-title">
+                  Login
+                </Typography>
+                <TextField
+                  onChange={(e) => setLoginUsername(e.target.value)}
+                  label="Username"
+                  placeholder="1224353"
+                  color="secondary"
+                  variant="filled"
+                  id="login-text"
+                />
+                <TextField
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  label="Password"
+                  placeholder="1224353"
+                  variant="filled"
+                  color="secondary"
+                  id="login-text"
+                />
+                <button onClick={login} className="submit-button">
+                  Submit
+                </button>
+              </div>
+            </Grid>
+            <Grid item xs={6}>
+              <div className="login-container">
+                <Typography variant="h2" component="h6" id="login-title">
+                  Register
+                </Typography>
+                <TextField
+                  sx={{ input: { color: "red" } }}
+                  onChange={(e) => setRegisterUsername(e.target.value)}
+                  label="Username"
+                  placeholder="1224353"
+                  color="secondary"
+                  variant="filled"
+                  id="login-text"
+                />
 
-          <div>
-            <Typography variant="h2" component="h6">
-              Get User
-            </Typography>
-            <button onClick={getUser}>Submit</button>
-            {data ? (
-              <Typography variant="h2" component="h6">
-                Welcome Back {data.username}
-              </Typography>
-            ) : null}
-          </div>
+                <TextField
+                  onChange={(e) => setRegisterPassword(e.target.value)}
+                  label="Password"
+                  variant="filled"
+                  color="secondary"
+                  placeholder="1224353"
+                  id="login-text"
+                />
+                <button onClick={register} className="submit-button">
+                  Submit
+                </button>
+              </div>
+            </Grid>
+          </Grid>
         </div>
       </Container>
     );
