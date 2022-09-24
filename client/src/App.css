@@ -1,7 +1,15 @@
 #logoutBtn {
-  position: absolute;
-  top: 2%;
-  right: 13%;
+  position: fixed;
+  top: 10%;
+  left: 0;
+  color: white;
+  background-color: white;
+  width: 1%;
+  height: 80%;
+  background-color: blue;
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+  z-index: 1000;
 }
 #title {
   font-size: 3rem;

@@ -4,7 +4,7 @@ import Axios from "axios";
 import User from "./pages/User/user";
 
 import { Button, Container, Grid, Typography, TextField } from "@mui/material";
-
+import LogoutIcon from "@mui/icons-material/Logout";
 function App() {
   const [isAuthenticated, setAuthentication] = useState(false);
   const [registerUsername, setRegisterUsername] = useState("");
@@ -71,7 +71,7 @@ function App() {
     return (
       <div className="App">
         <Button variant="contained" onClick={logOut} id="logoutBtn">
-          Log Out
+          <LogoutIcon />
         </Button>
         <User data={data} />
       </div>

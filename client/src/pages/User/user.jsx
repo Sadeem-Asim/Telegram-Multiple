@@ -1,12 +1,4 @@
-import {
-  Button,
-  Container,
-  Grid,
-  Typography,
-  Modal,
-  Box,
-  TextField,
-} from "@mui/material";
+import { Button, Typography, Modal, Box, TextField } from "@mui/material";
 import React, { useState } from "react";
 import { TelegramClient } from "telegram";
 import { StringSession } from "telegram/sessions";
@@ -14,13 +6,7 @@ import "./user.css";
 import Axios from "axios";
 import CloseIcon from "@mui/icons-material/Close";
 import Account from "./../../components/account/account";
-// import { ToastContainer, toast } from "react-toastify";
-// import "react-toastify/dist/ReactToastify.css";
-
-// My Account Details
-// const apiId = 17720656;
-// const apiHash = "db2355877197069b70d88dfb586a4fd8";
-// const phoneNo = "+923494965651";
+import TelegramIcon from "@mui/icons-material/Telegram";
 
 const style = {
   position: "absolute",
@@ -42,6 +28,7 @@ const User = ({ data }) => {
   let [apiId, setApiId] = useState(false);
   const [apiHash, setApiHash] = useState(false);
   const [phoneNo, setPhoneNo] = useState(false);
+  const [submitButton, setSubmitButton] = useState("Submit");
   const stringSession = new StringSession("");
   const handleClose = () => {
     setOpenModal(false);
@@ -51,6 +38,7 @@ const User = ({ data }) => {
   };
   const addAccount = async () => {
     try {
+      setSubmitButton("Connecting");
       console.log("Loading interactive example...");
       apiId = Number(apiId);
       const client = new TelegramClient(stringSession, apiId, apiHash, {
@@ -62,6 +50,10 @@ const User = ({ data }) => {
         phoneCode: () => prompt("Enter Code"),
         onError: (err) => console.log(err),
       });
+      setSubmitButton("Connected");
+      setApiId("");
+      setApiHash("");
+      setPhoneNo("");
       console.log("You should now be connected.");
       const token = client.session.save();
       if (token) {
@@ -74,20 +66,27 @@ const User = ({ data }) => {
             apiHash: apiHash,
             token: token,
             phoneNo: phoneNo,
+            username: data.username,
           },
         });
         console.log(newAccount);
         window.location.reload();
       }
     } catch (err) {
-      alert(err.message);
+      setSubmitButton(`Error , ${err.message}`);
+      window.setTimeout(() => {
+        setSubmitButton(`Submit`);
+        setApiId("");
+        setApiHash("");
+        setPhoneNo("");
+      }, 2000);
     }
   };
 
   return (
     <>
       <Button variant="contained" onClick={activeModal} id="addAccountBtn">
-        Add Account
+        <TelegramIcon />
       </Button>
 
       <div className="userSection">
@@ -128,25 +127,19 @@ const User = ({ data }) => {
               id="modal-text"
             />
             <Button variant="contained" onClick={addAccount}>
-              Submit
+              {submitButton}
             </Button>
           </Box>
         </Modal>
-
-        <Container maxWidth="lg" className="userSection-container">
-          <h1 id="title">Telegram Multiple Accounts</h1>
-          <Grid
-            container
-            rowSpacing={1}
-            columnSpacing={{ xs: 1, sm: 2, md: 3 }}
-          >
-            {data.accounts.map((el, i) => (
-              <Grid item xs={6} key={i}>
-                <Account account={el} key={i} />
-              </Grid>
-            ))}
-          </Grid>
-        </Container>
+        <div className="userSection-container">
+          {data.accounts.map((el, i) => {
+            return (
+              <div className="account">
+                <Account account={el} key={i} username={data.username} />{" "}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </>
   );

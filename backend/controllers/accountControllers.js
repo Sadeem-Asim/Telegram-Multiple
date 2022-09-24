@@ -1,10 +1,12 @@
 const Account = require("../models/accountModel");
 const User = require("../models/user");
+
 exports.createNewAccount = async (req, res) => {
-  const account = await Account.create(req.body);
-  console.log(account.id);
+  const { apiId, apiHash, phoneNo, token } = req.body;
+  const account = await Account.create({ apiId, apiHash, phoneNo, token });
+  const username = req.body.username;
   const updatedUser = await User.findOneAndUpdate(
-    { username: "sadeem" },
+    { username },
     {
       $push: { accounts: account.id },
     },
@@ -20,4 +22,13 @@ exports.createNewAccount = async (req, res) => {
 exports.getAccounts = async (req, res) => {
   const account = await Account.find();
   res.status(200).json({ account: account });
+};
+exports.deleteAccount = async (req, res) => {
+  try {
+    const { _id, username } = req.body;
+    await Account.findOneAndDelete({ _id });
+  } catch (error) {
+    console.log(error);
+    res.send("Error");
+  }
 };
