@@ -1,6 +1,8 @@
 const { promisify } = require("util");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
+const bcrypt = require("bcryptjs");
+
 exports.protect = async (req, res) => {
   let currentUser;
   try {
@@ -32,7 +34,11 @@ exports.protect = async (req, res) => {
   }
 };
 exports.logOut = (req, res) => {
-  res.status(202).clearCookie("jwt").send("cookie cleared");
+  try {
+    res.status(202).clearCookie("jwt", { path: "/" }).send("cookie cleared");
+  } catch (error) {
+    console.log(error);
+  }
 };
 exports.getUsers = async (req, res) => {
   try {
@@ -64,47 +70,65 @@ exports.isLoggedIn = async (req, res, next) => {
   next();
 };
 exports.login = async (req, res, next) => {
-  const { username, password } = req.body;
-  const user = await User.findOne({ username }).select("+password");
-  if (user) {
-    bcrypt.compare(password, user.password, (err, result) => {
-      // if (err) throw err;
-      if (result === true) {
-        console.log(result);
-        user.password = undefined;
-        let { _id } = user;
-        const token = jwt.sign({ _id }, "Sadeem", { expiresIn: "90d" });
-        const cookieOptions = {
-          expires: new Date(Date.now() + 9000000 * 24 * 60 * 60 * 1000 * 10000),
-          secure: true,
-          httpOnly: true,
-        };
-        res.cookie("jwt", token, cookieOptions);
-        req.user = user;
-        res.status(200).json({
-          message: "success",
-          user,
-        });
-      } else {
-        res
-          .status(200)
-          .send({ status: "failed", message: "Invalid Username Or Password" });
-      }
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username }).select("+password");
+    if (user) {
+      bcrypt.compare(password, user.password, (err, result) => {
+        // if (err) throw err;
+        if (result === true) {
+          console.log(result);
+          user.password = undefined;
+          let { _id } = user;
+          const token = jwt.sign({ _id }, "Sadeem", { expiresIn: "365d" });
+          const cookieOptions = {
+            expires: new Date(Date.now() + 9000000 * 24 * 60 * 60 * 1000),
+            secure: true,
+            httpOnly: true,
+            sameSite: "None",
+            path: "/",
+          };
+          res.cookie("jwt", token, cookieOptions);
+          req.user = user;
+          res.status(200).json({
+            message: "success",
+            user,
+          });
+        } else {
+          res.status(200).send({
+            message: "failed",
+          });
+        }
+      });
+    } else {
+      res.status(200).send({
+        message: "failed",
+      });
+    }
+  } catch (error) {
+    res.status(200).send({
+      message: "failed",
     });
   }
 };
-exports.register = (req, res) => {
-  User.findOne({ username: req.body.username }, async (err, doc) => {
-    if (err) throw err;
-    if (doc) res.send("User Already Exists");
-    if (!doc) {
-      const hashedPassword = await bcrypt.hash(req.body.password, 10);
-      const newUser = new User({
-        username: req.body.username,
-        password: hashedPassword,
-      });
-      await newUser.save();
-      res.send("User Created");
-    }
-  });
+exports.register = async (req, res) => {
+  try {
+    User.findOne({ username: req.body.username }, async (err, doc) => {
+      if (err) throw err;
+      if (doc) res.send("User Already Exists");
+      if (!doc) {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const newUser = new User({
+          username: req.body.username,
+          password: hashedPassword,
+        });
+        await newUser.save();
+        res.json({
+          message: "success",
+        });
+      }
+    });
+  } catch (error) {
+    res.send("error");
+  }
 };

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import "./App.css";
 import Axios from "axios";
 import User from "./pages/User/user";
-
 import { Button, Container, Grid, Typography, TextField } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
+import { Store } from "react-notifications-component";
 function App() {
   const [isAuthenticated, setAuthentication] = useState(false);
   const [registerUsername, setRegisterUsername] = useState("");
@@ -17,11 +17,23 @@ function App() {
     Axios({
       method: "GET",
       withCredentials: true,
-      url: "http://localhost:4000/isLoggedIn",
+      url: "https://telegrammulitplebackend.herokuapp.com/isLoggedIn",
     }).then((res) => {
       console.log(res.data.user);
-      setData(res.data.user);
-      setAuthentication(true);
+      if (res.data.user) {
+        setData(res.data.user);
+        setAuthentication(true);
+        Store.addNotification({
+          title: "Successfully Logged In",
+          type: "success",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 1000,
+            onScreen: true,
+          },
+        });
+      }
     });
   }, []);
 
@@ -33,8 +45,37 @@ function App() {
         password: registerPassword,
       },
       withCredentials: true,
-      url: "http://localhost:4000/register",
-    }).then((res) => console.log(res));
+      url: "https://telegrammulitplebackend.herokuapp.com/register",
+    }).then((res) => {
+      if (res.data.message === "success") {
+        Store.addNotification({
+          title: "Successfully Registered",
+          message: "Login Now To Use The Application",
+          type: "success",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 2000,
+            onScreen: true,
+          },
+        });
+        window.setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        Store.addNotification({
+          title: "Error",
+          message: "Cannot Register User Already Registered",
+          type: "success",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 2000,
+            onScreen: true,
+          },
+        });
+      }
+    });
   };
   const login = () => {
     Axios({
@@ -44,15 +85,36 @@ function App() {
         password: loginPassword,
       },
       withCredentials: true,
-      url: "http://localhost:4000/login",
+      url: "https://telegrammulitplebackend.herokuapp.com/login",
     }).then((res) => {
       console.log(res);
       if (res.data.message === "success") {
         console.log("true");
         setData(res.data.user);
         setAuthentication(true);
+        Store.addNotification({
+          title: "Successfully Logged In",
+          type: "success",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 1000,
+            onScreen: true,
+          },
+        });
+      } else {
+        Store.addNotification({
+          title: "Error",
+          message: "Incorrect Email Or Password",
+          type: "danger",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 1000,
+            onScreen: true,
+          },
+        });
       }
-      // window.location.reload();
     });
   };
 
@@ -60,10 +122,21 @@ function App() {
     Axios({
       method: "GET",
       withCredentials: true,
-      url: "http://localhost:4000/logOut",
+      url: "https://telegrammulitplebackend.herokuapp.com/logOut",
     }).then((res) => {
       console.log(res);
       setAuthentication(false);
+      Store.addNotification({
+        title: "Successfully Logged Out",
+        type: "success",
+        insert: "top",
+        container: "top-right",
+        dismiss: {
+          duration: 1000,
+          onScreen: true,
+        },
+      });
+      // window.location.reload();
     });
   };
 

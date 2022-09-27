@@ -7,6 +7,7 @@ import Axios from "axios";
 import CloseIcon from "@mui/icons-material/Close";
 import Account from "./../../components/account/account";
 import TelegramIcon from "@mui/icons-material/Telegram";
+import { Store } from "react-notifications-component";
 
 const style = {
   position: "absolute",
@@ -29,6 +30,7 @@ const User = ({ data }) => {
   const [apiHash, setApiHash] = useState(false);
   const [phoneNo, setPhoneNo] = useState(false);
   const [submitButton, setSubmitButton] = useState("Submit");
+
   const stringSession = new StringSession("");
   const handleClose = () => {
     setOpenModal(false);
@@ -59,7 +61,7 @@ const User = ({ data }) => {
       if (token) {
         const newAccount = await Axios({
           method: "POST",
-          url: "http://localhost:4000/createAccount",
+          url: "https://telegrammulitplebackend.herokuapp.com/createAccount",
           withCredentials: true,
           data: {
             apiId: apiId,
@@ -70,16 +72,30 @@ const User = ({ data }) => {
           },
         });
         console.log(newAccount);
+        Store.addNotification({
+          title: "Successfully Created Account",
+          type: "success",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 1000,
+            onScreen: true,
+          },
+        });
         window.location.reload();
       }
     } catch (err) {
-      setSubmitButton(`Error , ${err.message}`);
-      window.setTimeout(() => {
-        setSubmitButton(`Submit`);
-        setApiId("");
-        setApiHash("");
-        setPhoneNo("");
-      }, 2000);
+      Store.addNotification({
+        title: "Error",
+        message: err.message,
+        type: "danger",
+        insert: "top",
+        container: "top-right",
+        dismiss: {
+          duration: 1000,
+          onScreen: true,
+        },
+      });
     }
   };
 
@@ -132,13 +148,19 @@ const User = ({ data }) => {
           </Box>
         </Modal>
         <div className="userSection-container">
-          {data.accounts.map((el, i) => {
-            return (
-              <div className="account">
-                <Account account={el} key={i} username={data.username} />{" "}
-              </div>
-            );
-          })}
+          {data.accounts.length >= 1 ? (
+            data.accounts.map((el, i) => {
+              return (
+                <div className="account">
+                  <Account account={el} key={i} username={data.username} />{" "}
+                </div>
+              );
+            })
+          ) : (
+            <h1 className="addAccountTitle">
+              Click The Telegram Button To Add Your First Account
+            </h1>
+          )}
         </div>
       </div>
     </>

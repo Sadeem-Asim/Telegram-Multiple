@@ -13,6 +13,7 @@ import { RotatingSquare } from "react-loader-spinner";
 import SendIcon from "@mui/icons-material/Send";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Axios from "axios";
+import { Store } from "react-notifications-component";
 const Account = ({ account, username }) => {
   let { _id, apiId, apiHash, token, phoneNo } = account;
   const stringSession = new StringSession(token);
@@ -32,7 +33,7 @@ const Account = ({ account, username }) => {
   const [currentChatBox, setCurrentChatBox] = useState(null);
   const [currentMessages, setCurrentMessages] = useState();
   const [loaderState, setLoaderState] = useState();
-  const [message, setMessage] = useState();
+  const [message, setMessage] = useState("");
   useEffect(() => {
     if (currentChatBox) {
       setLoaderState(true);
@@ -74,11 +75,21 @@ const Account = ({ account, username }) => {
     if (ans === "yes") {
       await Axios({
         method: "DELETE",
-        url: "http://localhost:4000/deleteAccount",
+        url: "https://telegrammulitplebackend.herokuapp.com/deleteAccount",
         withCredentials: true,
         data: {
           _id: _id,
           username: username,
+        },
+      });
+      Store.addNotification({
+        title: "Successfully Deleted Account",
+        type: "success",
+        insert: "top",
+        container: "top-right",
+        dismiss: {
+          duration: 1000,
+          onScreen: true,
         },
       });
       window.location.reload();
@@ -102,32 +113,84 @@ const Account = ({ account, username }) => {
     setContacts(allContacts);
   };
   useEffect(() => {
-    client.connect().then(async () => {
-      console.log("You should now be connected.");
-      const allChats = await client.invoke(
-        new Api.messages.GetAllChats({
-          exceptIds: [7475723],
-        })
-      );
-      const allContacts = await client.invoke(
-        new Api.contacts.GetContacts({
-          hash: 3457568,
-        })
-      );
-      const { users } = allContacts;
-      const { chats } = allChats;
-      const dialog = await client.getDialogs();
-      let allUsers = dialog.concat(users.concat(chats));
-      setContacts(dialog);
-      setAllContacts(allUsers);
-      client.addEventHandler(async (update) => {
-        if (update.className === "UpdateNewChannelMessage") {
-          setUpdate((old) => old + 1);
-        } else if (update.className === "UpdateShortMessage") {
-          setUpdate((old) => old + 1);
+    client
+      .connect()
+      .then(async () => {
+        try {
+          console.log("You should now be connected.");
+          const allChats = await client.invoke(
+            new Api.messages.GetAllChats({
+              exceptIds: [7475723],
+            })
+          );
+          const allContacts = await client.invoke(
+            new Api.contacts.GetContacts({
+              hash: 3457568,
+            })
+          );
+          const { users } = allContacts;
+          const { chats } = allChats;
+          const dialog = await client.getDialogs();
+          let allUsers = dialog.concat(users.concat(chats));
+          setContacts(dialog);
+          setAllContacts(allUsers);
+          client.addEventHandler(async (update) => {
+            if (update.className === "UpdateNewChannelMessage") {
+              Store.addNotification({
+                title: `New Message For ${phoneNo}`,
+                message: update.message.message,
+                type: "success",
+                insert: "top",
+                container: "top-right",
+                dismiss: {
+                  duration: 3000,
+                  onScreen: true,
+                },
+              });
+              setUpdate((old) => old + 1);
+            } else if (update.className === "UpdateShortMessage") {
+              Store.addNotification({
+                title: `New Message For ${phoneNo}`,
+                message: update.message,
+                type: "success",
+                insert: "top",
+                container: "top-right",
+                dismiss: {
+                  duration: 3000,
+                  onScreen: true,
+                },
+              });
+              setUpdate((old) => old + 1);
+            }
+          });
+        } catch (error) {
+          Store.addNotification({
+            title: "Error",
+            message: error.message,
+            type: "danger",
+            insert: "top",
+            container: "top-right",
+            dismiss: {
+              duration: 1000,
+              onScreen: true,
+            },
+          });
         }
+      })
+      .catch((err) => {
+        Store.addNotification({
+          title: `Connection Error ${phoneNo}`,
+          message:
+            "We Can't Connect You To Telegram Seems Like Your Vpn Is Off Or Internet Connection Is Not Stable . Reload To Get Started Again",
+          type: "danger",
+          insert: "top",
+          container: "top-right",
+          dismiss: {
+            duration: 10000,
+            onScreen: true,
+          },
+        });
       });
-    });
     console.log("Connected");
   }, [client]);
 
@@ -196,10 +259,12 @@ const Account = ({ account, username }) => {
         <div className="right-side">
           <div className="dialog">
             <div className="dialog-header">
-              <Button variant="contained" id="backButton">
-                <Button onClick={getToContacts}>
-                  <ArrowBackIcon />
-                </Button>
+              <Button
+                variant="contained"
+                id="backButton"
+                onClick={getToContacts}
+              >
+                <ArrowBackIcon />
               </Button>
               <span className="dialog-heading">{currentChatBox.name}</span>
             </div>
