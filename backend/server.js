@@ -4,14 +4,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const app = express();
-const session = require("express-session");
-const User = require("./models/user");
-const jwt = require("jsonwebtoken");
-const {
-  protect,
-  logOut,
-  getUsers,
-} = require("./controllers/userControllers.js");
+
 const accountRouter = require("./routers/accountRouters");
 const userRouter = require("./routers/userRouter");
 //----------------------------------------- END OF IMPORTS---------------------------------------------------
@@ -59,17 +52,11 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: "http://localhost:3000", // <-- location of the react app were connecting to
+    origin: ["http://localhost:3000", "https://telegram-multiple.netlify.app"], // <-- location of the react app were connecting to
     credentials: true,
   })
 );
-app.use(
-  session({
-    secret: "secretcode",
-    resave: true,
-    saveUninitialized: true,
-  })
-);
+
 app.use(cookieParser("secretcode"));
 process.on("uncaughtException", (err) => {
   console.log("Error 💥", err.name, err.message, err.stack);

@@ -35,7 +35,12 @@ exports.protect = async (req, res) => {
 };
 exports.logOut = (req, res) => {
   try {
-    res.status(202).clearCookie("jwt", { path: "/" }).send("cookie cleared");
+    res.clearCookie("jwt");
+    res.send("cookie cleared");
+    // req.session.destroy();
+    // req.cookies = undefined;
+    // cookies.set("jwt", { expires: Date.now() });
+    // res.cookie("jwt", "", { expires: Date.now() });
   } catch (error) {
     console.log(error);
   }
